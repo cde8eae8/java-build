@@ -1,0 +1,81 @@
+#!/bin/bash
+
+. ./out-format.sh
+. ./util.sh
+. ./prepare.sh
+
+name="drozdov"
+
+if [[ $# -lt 2 ]]; then
+  error "expected type & task id"
+  exit 1
+fi
+
+id="$2"
+
+if ! load_config "$name" "$id"; then
+  exit 1
+fi
+
+#tmpdir="$(mktemp -d)"
+#tmp="$tmpdir/build"
+#mkdir "$tmp"
+tmp="/tmp/java-build"
+
+start="java-advanced-2020-solutions"
+tests_dir="java-advanced-2020"
+base="info.kgeorgiy.java.advanced."
+
+kmodules="$tests_dir/artifacts/:$tests_dir/lib/"
+ksources="$tests_dir/modules"
+#package="ru.ifmo.rain.drozdov.$task"
+package="$PACKAGE"
+
+additional_modules="$(add_prefixJ $base "," $ADDITIONAL_MODULES $TEST_NAME)"
+
+java -cp $tmp -p "$kmodules" -d info.kgeorgiy.java.advanced.$TEST_NAME 
+compile="javac -d $tmp -p $kmodules --add-modules "$additional_modules" $(find "$start" -wholename '*'$SHORT_PACKAGE'*.java')"
+
+
+# $(find "$ksources" -wholename '*'$TEST_NAME'*.java')
+echo $compile
+if ! $compile; then
+  error "compile error #1"
+  COMPILE_PATHS=$(add_prefix "java-advanced-2020-solutions/java-solutions/ru/ifmo/rain/$name/$SHORT_PACKAGE/" $JAVAFILES) 
+  compile="javac -d $tmp -p $kmodules --add-modules "$additional_modules" $COMPILE_PATHS"
+  if ! $compile; then
+    error COMPILE2
+    msg $compile
+    error "compile error #2"
+    exit 1
+  fi
+fi
+#infer run -- $compile
+
+
+prepare_test
+
+check_variable "tests_dir"
+
+
+pwd
+
+if [[ $1 == "test" ]]; then
+  cmd="java -cp $tmp -p "$kmodules" --add-modules "$additional_modules"  -m info.kgeorgiy.java.advanced.$TEST_NAME $TEST_TYPE $package.$CLASS"
+fi
+if [[ $1 == "run" ]]; then
+  shift; shift;
+  cmd="java -cp $tmp -p "$kmodules" --add-modules "$additional_modules" $package.$CLASS $@"
+fi
+if [[ $1 == "inf" ]]; then
+  while true; do 
+    java -cp $tmp -p "$kmodules" --add-modules "$additional_modules"  -m info.kgeorgiy.java.advanced.$TEST_NAME $TEST_TYPE $package.$CLASS; 
+  done
+fi
+echo $cmd
+$cmd
+
+
+find "$tmp" -type f 
+echo $tmp
+
