@@ -1,6 +1,6 @@
 #!/bin/bash
 
-. ~/bin/sh/out-format.sh
+. ./out-format.sh
 
 rebuild() {
   if [[ $# -ne 2 ]]; then
