@@ -4,7 +4,7 @@
 . ./util.sh
 . ./prepare.sh
 
-name="drozdov"
+name="$(cat name)"
 
 if [[ $# -lt 2 ]]; then
   error "expected type & task id"
